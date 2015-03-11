@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" /> 
+	<title>Web Programming Coursework Grades</title>
+
+	<style type="text/css">
+		table#studTab { width:600px; border-spacing:0px; border:1px solid black; border-collapse:collapse; }
+		tr.tbl { font-size:1.2em;  text-align:center; }
+
+		table {
+				width:auto;
+				border:1px solid black; 
+				padding: 2px;
+				background-color:#f0f0f0;
+				text-align:right;
+		} 
+				
+		.firstLine { background-color:#696969; text-align:center; font-size:1.2em;}
+		.evenLine { background-color:#A9A9A9; }
+		.gradeCell { font-size:1.6em; font-weight:bold; }
+		.pass { color:green; }
+		.fail { color:red; }
+		div#error {
+			width:30%;
+			border: 2px dashed black;
+			background-color: #580000;
+			color:white;
+			
+		}
+	</style>
+
+	<script type="text/javascript">
+		
+		//Create a new student with the data inserted in the form
+		function createStudent(stname,c1,c2,c3,c4,c5) 
+		{
+			this.name = stname;
+			this.grade = (c1+c2+c3+c4+c5)/5.0;
+				
+			this.printName = function () {
+								if (this.grade > 5) 
+									return "<td class=\"pass\">\"Take the exams\"</td>";
+								else 
+									return "<td class=\"fail\">\"Repeat the course\"</td>";
+							};
+			this.printGrade = function () { 
+								return "<td class=\"gradeCell\">"+this.grade+"</td>"; 
+							};	
+			this.showName = function(){ 
+								return "<td >"+this.name+"</td> ";
+							};
+		}
+		
+		//********** INITIAL STUDENT ARRAY **********
+		
+		// Create a  new Array to host the Objects created below
+		var studentArray = new Array();
+
+		// Create the objects and passing them as members of the Array.
+		studentArray[0] = new createStudent("Nickolas Wirth",10,10,10,10,10);
+		studentArray[1] = new createStudent("John Do",3,2,4,2,5);
+		studentArray[2] = new createStudent("Jane Do",3,4,3,6,7);
+		studentArray[3] = new createStudent("Alain Turing",10,10,10,10,10);
+		studentArray[4] = new createStudent("Nikos Javas",7,9,8,7,8,9);
+		
+
+		//********** SORTING FUNCTIONS AND PRINTING TABLE **********
+		
+		/* Function used for sorting. 
+		 * according_to_grade(st1, st2){ Compare "st1" and "st2" in some fashion, and return -1, 0, or 1 (or negative,0,positive}
+		 * When such a function is passed into array.sort(), the array elements are sorted 
+		 * based on the relationship between each pair of elements "a" and "b" and the function's 
+		 * return value. The three possible return numbers are: <0 (less than 0), 0, or >0 (greater than 0):
+		 *	< 0: Sort "st1" to be a lower index than "st2"
+		 *	 0: st1 and st2 are equal, and no sorting performed.
+		 *	 >0  Sort "st2" to be a lower index than "st1".
+		 */
+
+		// Sort according to the grade in desceding order.
+		function according_to_grade(st1,st2) {
+			return st2.grade - st1.grade;
+		}
+		
+		// Sort according to the name. We compare the two strings by the < operator and return -1 or 1.
+		function according_to_name(st1,st2){
+			return ((st1.name < st2.name) ? -1 : 1); 
+		}
+		
+		/* 
+		 * Function that outputs the table. The table is now inserted in a specific HTML DOM element,
+		 * that we obtain via the getElementById function. The innerHTML property is used to put the output in the specific 
+		 * DOM element. 
+		*/
+		function printTable(how)
+		{
+			var i;
+			var rows = "";
+
+			if (how == "grade")  
+				studentArray.sort(according_to_grade);
+			else if (how == "name") 
+				studentArray.sort(according_to_name);
+			 
+			var tableHeader = "<tr class=\"firstLine\"><th>Name</th><th>Mean grade</th><th>Result</th></tr>";
+			// A for loop to create all table rows. Each loop corresponds to a table row that is added as a value to the rows variable.
+			for( i = 0; i < studentArray.length;i++){
+				rows = rows + "<tr class=\"tbl\">"+studentArray[i].showName()+studentArray[i].printGrade()+studentArray[i].printName()+"</tr>";
+			}
+
+			// This line sets the innerHTML value of element with dd= 'studTab' to be the string created above
+			document.getElementById('studTabDiv').innerHTML = "<table id='studTab'>" + tableHeader + rows + "</table>";
+		}
+
+		//********** FUNCTIONS FOR ERROR MESSAGES **********	
+		function appendTo(ID,Text){
+			var x = document.getElementById(ID);
+			x.innerHTML = x.innerHTML + Text + "<br />";
+		}
+
+		// Clears all the text in the element with ID.
+		function clearElement(ID) {
+			var x = document.getElementById(ID);
+			x.innerHTML = " ";
+		}
+
+		// Writes to an element deleting previous text
+		function writeTo(ID,Text){
+			clearElement(ID);
+			appendTo(ID,Text);
+		}	
+
+		//********** FUNCTIONS FOR ADDING STUDENTS **********
+		function addStudent()
+		{
+			clearElement("error");
+			
+			var name = document.forms['studForm'].stname.value;
+			var correct = true;
+			var i;
+
+			// Check student name
+			if (name == "") 
+			{
+				appendTo("error", "Please insert the name of the student.");
+				correct = false;
+			}
+			
+			// Check if student exists
+			for(i=0; i<studentArray.length; i++)
+			{
+				if (name == studentArray[i].name) 
+				{
+					appendTo("error", "The student already exists in the list.");
+					correct = false;
+				}
+			}
+			
+			// Check grades
+			var c = new Array(  document.forms['studForm'].html.value, 
+								document.forms['studForm'].css.value,
+								document.forms['studForm'].javascript.value,
+								document.forms['studForm'].php.value,
+								document.forms['studForm'].jsp.value
+								);
+
+			for(i=0; i<c.length;i++)
+			{
+				if (c[i] == "" || isNaN(c[i]) ) 
+				{
+					appendTo("error", "Please fill in ALL the grades .");
+					correct = false;
+                    break; 
+				}
+			}
+			for(i=0; i<c.length;i++)
+			{
+				c[i] = parseFloat(c[i]);
+				if (c[i] > 10 || c[i] < 0) 
+				{	
+					appendTo("error", "Grades should be between 0 and 10.");
+					correct = false;
+                    break; 
+				}
+			}
+				
+			if (correct)
+			{
+				studentArray[studentArray.length] = new createStudent(name,c[0],c[1],c[2],c[3],c[4]);
+				document.forms['studForm'].resetbtn.click();
+				printTable('name');		   
+			}
+		}
+		
+	</script>
+	</head>
+
+	<body onload="printTable();">
+		<h1> Web Programming Coursework Grades </h1>
+		<p> The page contains the mean grade of the assignments</p>
+
+		<div id="studTabDiv"></div>
+		<form method="post" action="">
+			<input type="button" onclick="printTable('name');" value="By name" />
+			<input type="button" onclick="printTable('grade');" value="By Grade" />
+		</form>
+
+		<h3> Add a new Student</h3>
+		<div id="error"></div>
+
+		<form id="studForm" method="get" action="" />
+			<p> Student Name: <input name="stname" type="text" size = "20" maxlength="30" /> </p>
+
+			<table >
+				<tr>
+					<td> HTML Assignment</td>
+					<td> <input name ="html" type="text" size = "5" maxlength="4" /> </td>
+				</tr>
+				<tr>
+					<td> CSS Assignment</td>
+					<td> <input name="css" type="text" size = "5" maxlength="4" /> </td>
+				</tr>
+				<tr>
+					<td> Javascript Assignment</td>
+					<td> <input name = "javascript" type="text" size = "5" maxlength="4" /> </td>
+				</tr>
+				<tr>
+					<td> PHP & MySQL Assignment</td>
+					<td> <input name ="php" type="text" size = "5" maxlength="4" /> </td>
+				</tr>
+				<tr>
+					<td> Servlets & JSP Assignment</td>
+					<td> <input name ="jsp" type="text" size = "5" maxlength="4" /> </td>
+				</tr>
+			</table>
+
+			<br />
+			<input type="button" onclick="addStudent();" value="Add Student and Mean Grade" />
+			<input type="reset" name="resetbtn"/>
+		</form>
+	</body>
+</html>
